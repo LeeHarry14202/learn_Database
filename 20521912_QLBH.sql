@@ -22,7 +22,7 @@ CREATE TABLE NHANVIEN(
 
 CREATE TABLE SANPHAM(
 	MASP CHAR(4) CONSTRAINT PK_SANPHAM PRIMARY KEY(MASP),
-	TENSO VARCHAR(40),
+	TENSP VARCHAR(40),
 	DVT VARCHAR(40),
 	NUOCSX VARCHAR(40),
 	GIA MONEY
@@ -219,10 +219,38 @@ SELECT * INTO KHACHHANG1 FROM KHACHHANG
 SELECT * FROM KHACHHANG1
 
 /*CAU 3*/
-SELECT * FROM SANPHAM1 WHERE nuocsx = 'Thai Lan'
-UPDATE SANPHAM1 set gia = gia * (105 /100)
+ALTER TABLE SANPHAM1
+ALTER COLUMN gia FLOAT
 
+UPDATE SANPHAM1 set gia += gia * 0.05 WHERE nuocsx = 'Thai Lan'
 
+/*CAU 4*/
+UPDATE SANPHAM1 set gia -= gia * 0.05 WHERE nuocsx = 'Trung Quoc' AND gia > 10000
+
+/*CAU 5*/
+UPDATE KHACHHANG1 set loaikh = 'Vip' WHERE (ngdk < '1/1/2007' and doanhso >= 10000000) or (ngdk > '1/1/2007' and doanhso >= 2000000)
+
+/*III*/
+
+/*CAU 1*/
+SELECT masp, tensp FROM SANPHAM WHERE nuocsx = 'Trung Quoc' 
+
+/*CAU 2*/
+SELECT masp, tensp FROM SANPHAM WHERE dvt = 'cay' or dvt = 'quyen' 
+
+/*CAU 3*/
+SELECT masp, tensp FROM SANPHAM WHERE masp like 'B%01'
+
+/*CAU 4*/
+SELECT masp, tensp FROM SANPHAM WHERE nuocsx = 'Trung Quoc' and gia BETWEEN 30000 and 40000 
+
+/*CAU 5*/
+SELECT masp, tensp FROM SANPHAM WHERE (nuocsx = 'Trung Quoc' or nuocsx = 'Thai Lan') and gia BETWEEN 30000 and 40000 
+
+/*CAU 6*/
+SELECT sohd, trigia FROM HOADON WHERE nghd = '1/1/2007' or nghd = '2/1/2007'
+
+/*CAU 7*/
 
 
 
