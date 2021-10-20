@@ -1,8 +1,7 @@
-
 CREATE DATABASE QLBH
 USE QLBH
 
-/*CAU 1*/
+/*CÂU 1*/
 CREATE TABLE KHACHHANG(
 	MAKH CHAR(4), CONSTRAINT PK_KHACHHANG PRIMARY KEY (MAKH),
 	HOTEN VARCHAR(40),
@@ -49,45 +48,45 @@ ADD CONSTRAINT FK_CTHD_HD FOREIGN KEY(SOHD) REFERENCES HOADON(SOHD)
 ALTER TABLE CTHD
 ADD CONSTRAINT FK_CTHD_SP FOREIGN KEY(MASP) REFERENCES SANPHAM(MASP)
 
-/*CAU 2*/
+/*CÂU 2*/
 ALTER TABLE SANPHAM
 ADD GHICHU VARCHAR(20)
 
-/*CAU 3*/
+/*CÂU 3*/
 ALTER TABLE KHACHHANG
 ADD LOAIKH TINYINT
 
-/*CAU 4*/
+/*CÂU 4*/
 ALTER TABLE SANPHAM
 ALTER COLUMN GHICHU VARCHAR(100)
 
-/*CAU 5*/
+/*CÂU 5*/
 ALTER TABLE SANPHAM
 DROP COLUMN GHICHU
 
-/*CAU 6*/
+/*CÂU 6*/
 ALTER TABLE KHACHHANG
 ALTER COLUMN LOAIKH VARCHAR(20)
 
-/*CAU 7*/
+/*CÂU 7*/
 ALTER TABLE SANPHAM
 ADD CONSTRAINT SANPHAM_DVT CHECK (DVT = 'cay' OR DVT = 'hop'
                                   OR DVT = 'cai' OR DVT = 'quyen'
                                   OR DVT = 'chuc')
-/*CAU 8*/
+/*CÂU 8*/
 ALTER TABLE SANPHAM
 add CONSTRAINT SANPHAM_GIA CHECK (GIA >= 500)
 
-/*CAU 9*/
+/*CÂU 9*/
 ALTER TABLE CTHD
 ADD CONSTRAINT CTHD_SL CHECK (SL >=1)
 
-/*CAU 10*/
+/*CÂU 10*/
 ALTER TABLE KHACHHANG
 ADD CONSTRAINT KHACHHANG_NGDK CHECK(NGDK >NGSINH)
 
 /*II*/
-/*Cau 1*/
+/*CÂU 1*/
 sET DATEFORMAT dmy
 INSERT INTO NHANVIEN (MANV, HOTEN, SODT, NGVL) VALUES ('NV01', 'Nguyen Nhu Nhut', '0927345678', '13/4/2006')
 INSERT INTO NHANVIEN (MANV, HOTEN, SODT, NGVL) VALUES ('NV02', 'Le Thi Phi Yen', '0987567390', '21/4/2006')
@@ -211,46 +210,87 @@ INSERT INTO CTHD (SOHD, MASP, SL) VALUES (1023, 'ST04', 6)
 INSERT INTO CTHD (SOHD, MASP, SL) VALUES (1023, 'BC01', 5)
 INSERT INTO CTHD (SOHD, MASP, SL) VALUES (1023, 'ST02', 1)
 
-/*CAU 2*/
+/*CÂU 2*/
 SELECT * INTO SANPHAM1 FROM SANPHAM
 SELECT * FROM SANPHAM1
 
 SELECT * INTO KHACHHANG1 FROM KHACHHANG
 SELECT * FROM KHACHHANG1
 
-/*CAU 3*/
+/*CÂU 3*/
 ALTER TABLE SANPHAM1
 ALTER COLUMN gia FLOAT
 
-UPDATE SANPHAM1 set gia += gia * 0.05 WHERE nuocsx = 'Thai Lan'
+UPDATE SANPHAM1 
+set gia += gia * 0.05 
+WHERE nuocsx = 'Thai Lan'
 
-/*CAU 4*/
-UPDATE SANPHAM1 set gia -= gia * 0.05 WHERE nuocsx = 'Trung Quoc' AND gia > 10000
+/*CÂU 4*/
+UPDATE SANPHAM1 
+set gia -= gia * 0.05 
+WHERE nuocsx = 'Trung Quoc' AND gia > 10000
 
-/*CAU 5*/
-UPDATE KHACHHANG1 set loaikh = 'Vip' WHERE (ngdk < '1/1/2007' and doanhso >= 10000000) or (ngdk > '1/1/2007' and doanhso >= 2000000)
+/*CÂU 5*/
+UPDATE KHACHHANG1 
+set loaikh = 'Vip' 
+WHERE (ngdk < '1/1/2007' and doanhso >= 10000000) or (ngdk > '1/1/2007' and doanhso >= 2000000)
 
 /*III*/
 
-/*CAU 1*/
-SELECT masp, tensp FROM SANPHAM WHERE nuocsx = 'Trung Quoc' 
+/*CÂU 1*/
+SELECT masp, tensp 
+FROM SANPHAM 
+WHERE nuocsx = 'Trung Quoc' 
 
-/*CAU 2*/
-SELECT masp, tensp FROM SANPHAM WHERE dvt = 'cay' or dvt = 'quyen' 
+/*CÂU 2*/
+SELECT masp, tensp 
+FROM SANPHAM 
+WHERE dvt = 'cay' or dvt = 'quyen' 
 
-/*CAU 3*/
-SELECT masp, tensp FROM SANPHAM WHERE masp like 'B%01'
+/*CÂU 3*/
+SELECT masp, tensp 
+FROM SANPHAM 
+WHERE masp like 'B%01'
 
-/*CAU 4*/
-SELECT masp, tensp FROM SANPHAM WHERE nuocsx = 'Trung Quoc' and gia BETWEEN 30000 and 40000 
+/*CÂU 4*/
+SELECT masp, tensp 
+FROM SANPHAM 
+WHERE nuocsx = 'Trung Quoc' and gia BETWEEN 30000 and 40000 
 
-/*CAU 5*/
-SELECT masp, tensp FROM SANPHAM WHERE (nuocsx = 'Trung Quoc' or nuocsx = 'Thai Lan') and gia BETWEEN 30000 and 40000 
+/*CÂU 5*/
+SELECT masp, tensp 
+FROM SANPHAM 
+WHERE (nuocsx = 'Trung Quoc' or nuocsx = 'Thai Lan') and gia BETWEEN 30000 and 40000 
 
-/*CAU 6*/
-SELECT sohd, trigia FROM HOADON WHERE nghd = '1/1/2007' or nghd = '2/1/2007'
+/*CÂU 6*/
+SELECT sohd, trigia 
+FROM HOADON 
+WHERE nghd = '1/1/2007' or nghd = '2/1/2007'
 
-/*CAU 7*/
+/*CÂU 7*/
+SELECT sohd, trigia 
+FROM HOADON 
+WHERE  MONTH(nghd) = 1 AND YEAR(nghd) = 2007 
+ORDER BY trigia DESC, nghd ASC
+
+/*CÂU 8*/
+SELECT KHACHHANG.makh, hoten
+FROM KHACHHANG INNER JOIN HOADON
+ON KHACHHANG.makh = HOADON.makh
+WHERE nghd = '1/1/2007'
+
+/*CÂU 9*/
+SELECT HOADON.sohd, trigia
+FROM HOADON INNER JOIN NHANVIEN
+on HOADON.manv = NHANVIEN.manv
+WHERE hoten = 'Nguyen Van B' AND nghd = '10/28/2007'
+
+
+
+
+
+
+
 
 
 
