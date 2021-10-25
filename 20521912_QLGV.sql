@@ -160,7 +160,6 @@ ADD CONSTRAINT MONHOC_TCLT_TCTH CHECK (abs(tclt -tcth) <153)
 /*CAU 15*/
 
 /*CAU 16*/
-ALTER TABLE
 
 -- vô hieu hóa khóa ngoai ---
 alter table hocvien nocheck constraint FK_HV_LOP
@@ -239,6 +238,7 @@ INSERT INTO DIEUKIEN VALUES ('DHMT','THDC')
 INSERT INTO DIEUKIEN VALUES ('LTHDT','THDC')
 INSERT INTO DIEUKIEN VALUES ('PTTKHTTT','CSDL')
 
+-- NHAP DU LIEU HOCVIEN --
 set DATEFORMAT dmy
 INSERT INTO HOCVIEN VALUES ('K1101','Nguyen Van','A','27/1/1986','Nam','TpHCM','K11',null, null, null)
 INSERT INTO HOCVIEN VALUES ('K1102','Tran Ngoc','Han','14/3/1986','Nu','Kien Giang','K11',null, null, null)
@@ -263,20 +263,21 @@ INSERT INTO HOCVIEN VALUES ('K1209','Pham Thanh','Trieu','23/2/1986','Nam','TpHC
 INSERT INTO HOCVIEN VALUES ('K1210','Ngo Thanh','Tuan','14/2/1986','Nam','TpHCM','K12',null, null, null)
 INSERT INTO HOCVIEN VALUES ('K1211','Do Thi','Xuan','9/3/1986','Nu','Ha Noi','K12',null, null, null)
 INSERT INTO HOCVIEN VALUES ('K1212','Le Thi Phi','Yen','12/3/1986','Nu','TpHCM','K12',null, null, null)
-INSERT INTO HOCVIEN VALUES ('K1301','Nguyen Van','A','27/1/1986','Nam','Kien Giang','K13',null, null, null)
-INSERT INTO HOCVIEN VALUES ('K1302','Nguyen Van','A','27/1/1986','Nam','Nghe An','K13',null, null, null)
-INSERT INTO HOCVIEN VALUES ('K1303','Nguyen Van','A','27/1/1986','Nam','Tay Ninh','K13',null, null, null)
-INSERT INTO HOCVIEN VALUES ('K1304','Nguyen Van','A','27/1/1986','Nam','TpHCM','K13',null, null, null)
-INSERT INTO HOCVIEN VALUES ('K1305','Nguyen Van','A','27/1/1986','Nam','TpHCM','K13',null, null, null)
-INSERT INTO HOCVIEN VALUES ('K1306','Nguyen Van','A','27/1/1986','Nam','Ha Noi','K13',null, null, null)
-INSERT INTO HOCVIEN VALUES ('K1307','Nguyen Van','A','27/1/1986','Nam','TpHCM','K13',null, null, null)
-INSERT INTO HOCVIEN VALUES ('K1308','Nguyen Van','A','27/1/1986','Nam','Kien Giang','K13',null, null, null)
-INSERT INTO HOCVIEN VALUES ('K1309','Nguyen Van','A','27/1/1986','Nam','Nghe An','K13',null, null, null)
-INSERT INTO HOCVIEN VALUES ('K1310','Nguyen Van','A','27/1/1986','Nam','Tay Ninh','K13',null, null, null)
-INSERT INTO HOCVIEN VALUES ('K1311','Nguyen Van','A','27/1/1986','Nam','TpHCM','K13',null, null, null)
-INSERT INTO HOCVIEN VALUES ('K1312','Nguyen Van','A','27/1/1986','Nam','TpHCM','K13',null, null, null)
+INSERT INTO HOCVIEN VALUES ('K1301','Nguyen Thi Kim','Cuc','9/6/1986','Nu','Kien Giang','K13',null, null, null)
+INSERT INTO HOCVIEN VALUES ('K1302','Nguyen Thi My','Hien','18/3/1986','Nu','Nghe An','K13',null, null, null)
+INSERT INTO HOCVIEN VALUES ('K1303','Le Duc','Hien','23/3/1986','Nam','Tay Ninh','K13',null, null, null)
+INSERT INTO HOCVIEN VALUES ('K1304','Le Quang','hien','18/4/1986','Nam','TpHCM','K13',null, null, null)
+INSERT INTO HOCVIEN VALUES ('K1305','Le Thi','Huong','27/3/1986','Nu','TpHCM','K13',null, null, null)
+INSERT INTO HOCVIEN VALUES ('K1306','Nguyen Thai','Huu','30/3/1986','Nam','Ha Noi','K13',null, null, null)
+INSERT INTO HOCVIEN VALUES ('K1307','Tran Minh','Man','28/5/1986','Nam','TpHCM','K13',null, null, null)
+INSERT INTO HOCVIEN VALUES ('K1308','Nguyen Hieu','Nghia','8/4/1986','Nam','Kien Giang','K13',null, null, null)
+INSERT INTO HOCVIEN VALUES ('K1309','Nguyen Trung','Nghia','18/1/1987','Nam','Nghe An','K13',null, null, null)
+INSERT INTO HOCVIEN VALUES ('K1310','Tran Thi Hong','Tham','22/4/1986','Nu','Tay Ninh','K13',null, null, null)
+INSERT INTO HOCVIEN VALUES ('K1311','Tran Minh','Thuc','4/4/1986','Nam','TpHCM','K13',null, null, null)
+INSERT INTO HOCVIEN VALUES ('K1312','Nguyen Thi Kim','Yen','7/9/1986','Nu','TpHCM','K13',null, null, null)
 
 -- NHAP DU LIEU KETQUATHI --
+set DATEFORMAT dmy
 INSERT INTO KETQUATHI VALUES ('K1101','CSDL',1,'20/7/2006',10,'Dat')
 INSERT INTO KETQUATHI VALUES ('K1101','CTDLGT',1,'28/12/2006',9,'Dat')
 INSERT INTO KETQUATHI VALUES ('K1101','THDC',1,'20/5/2006',9,'Dat')
@@ -344,10 +345,34 @@ INSERT INTO KETQUATHI VALUES ('K1305','CTDLGT',1,'25/7/2006',10,'Dat')
 INSERT INTO KETQUATHI VALUES ('K1305','THDC',1,'20/5/2006',8,'Dat')
 INSERT INTO KETQUATHI VALUES ('K1305','CTRR',1,'13/5/2006',10,'Dat')
 
+/*II*/
+/* Cau 1 */
+UPDATE GIAOVIEN
+SET heso = heso + 0.2
+WHERE magv IN (SELECT trgkhoa FROM KHOA)
 
+/* Cau 3 */
+UPDATE HOCVIEN 
+set ghichu = 'Cam thi'
+WHERE mahv IN
+(
+  SELECT mahv
+  FROM KETQUATHI
+  WHERE lanthi = 3 AND diem < 5
+)
 
-
-
+/* Cau 4 */
+UPDATE HOCVIEN
+SET xeploai =
+(
+  CASE
+  	WHEN diemtb>= 9 THEN 'XS'
+  	WHEN diemtb >= 8 AND diemtb < 9 THEN 'G'
+  	WHEN diemtb >=6.5 AND diemtb < 8 THEN 'K'
+  	WHEN diemtb >= 5 AND diemtb < 6.5 THEN 'TB'
+	WHEN diemtb < 5 THEN 'Y'
+  END
+)
 
 
 
