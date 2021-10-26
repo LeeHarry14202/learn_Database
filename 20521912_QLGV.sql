@@ -347,33 +347,128 @@ INSERT INTO KETQUATHI VALUES ('K1305','CTRR',1,'13/5/2006',10,'Dat')
 
 /*II*/
 /* Cau 1 */
-UPDATE GIAOVIEN
-SET heso = heso + 0.2
-WHERE magv IN (SELECT trgkhoa FROM KHOA)
+UPDATE 
+	GIAOVIEN
+SET 
+	heso = heso + 0.2
+WHERE 
+	magv IN (SELECT 
+             	trgkhoa 
+             FROM 
+             	KHOA)
 
 /* Cau 3 */
-UPDATE HOCVIEN 
-set ghichu = 'Cam thi'
-WHERE mahv IN
-(
-  SELECT mahv
-  FROM KETQUATHI
-  WHERE lanthi = 3 AND diem < 5
-)
+UPDATE 
+	HOCVIEN 
+set 
+	ghichu = 'Cam thi'
+WHERE 
+	mahv IN (SELECT 
+             	mahv 
+             FROM 
+             	KETQUATHIWHERE lanthi = 3 
+             AND 
+             	diem < 5)
 
 /* Cau 4 */
-UPDATE HOCVIEN
-SET xeploai =
-(
-  CASE
-  	WHEN diemtb>= 9 THEN 'XS'
-  	WHEN diemtb >= 8 AND diemtb < 9 THEN 'G'
-  	WHEN diemtb >=6.5 AND diemtb < 8 THEN 'K'
-  	WHEN diemtb >= 5 AND diemtb < 6.5 THEN 'TB'
-	WHEN diemtb < 5 THEN 'Y'
-  END
-)
+UPDATE 
+	HOCVIEN
+SET 
+	xeploai =
+    (
+      CASE
+        WHEN diemtb>= 9 THEN 'XS'
+        WHEN diemtb >= 8 AND diemtb < 9 THEN 'G'
+        WHEN diemtb >=6.5 AND diemtb < 8 THEN 'K'
+        WHEN diemtb >= 5 AND diemtb < 6.5 THEN 'TB'
+        WHEN diemtb < 5 THEN 'Y'
+      END
+    )
 
+/*III*/
+/* Câu 1: In ra danh sách (mã học viên, họ tên, ngày sinh, mã lớp) lớp trưởng của các lớp.*/
+SELECT 
+	HOCVIEN.mahv, 
+    (Ho+' '+Ten) HoTen, 
+    HOCVIEN.ngsinh, 
+    HOCVIEN.malop
+FROM 
+	HOCVIEN INNER JOIN LOP
+ON 
+	HOCVIEN.malop = LOP.malop 
+WHERE 
+	mahv IN (SELECT 
+             	trglop 
+             FROM 
+             	LOP )
+/*2. In ra bảng điểm khi thi (mã học viên, họ tên , lần thi, điểm số) môn CTRR của lớp “K12”,
+sắp xếp theo tên, họ học viên.*/
+SELECT 
+	HOCVIEN.mahv, (Ho+' '+Ten) HoTen, lanthi, diem
+FROM 
+	HOCVIEN INNER JOIN KETQUATHI
+ON 
+	HOCVIEN.mahv = KETQUATHI.mahv
+WHERE 
+	HOCVIEN.malop = 'K12' 
+    AND mamh = 'CTRR'
+ORDER by 
+	ten ASC
+
+/*3. In ra danh sách những học viên (mã học viên, họ tên) và những môn học mà học viên đó thi
+lần thứ nhất đã đạt.*/
+SELECT 
+	HOCVIEN.mahv, (Ho+' '+Ten) HoTen
+FROM 
+	HOCVIEN INNER JOIN KETQUATHI
+ON 
+	HOCVIEN.mahv = KETQUATHI.mahv
+WHERE 
+	lanthi = 1 
+    AND kqua = 'Dat'
+
+/*4. In ra danh sách học viên (mã học viên, họ tên) của lớp “K11” thi môn CTRR không đạt (ở
+lần thi 1).*/
+-- Cách 1
+SELECT 
+	DISTINCT HOCVIEN.mahv, (Ho+' '+Ten) HoTen
+FROM 
+	HOCVIEN INNER JOIN KETQUATHI
+ON 
+	HOCVIEN.mahv = KETQUATHI.mahv
+WHERE 
+	lanthi = 1 
+    AND kqua = 'Khong Dat' 
+    AND HOCVIEN.malop = 'K11' 
+    AND mamh = 'CTRR'
+
+-- Cách 2
+sELECT
+	HocVien.MaHV, (Ho+' '+Ten) HoTen
+FROM
+	HocVien, KetQuaThi
+WHERE
+	HocVien.MaHV = KetQuaThi.MaHV
+	AND MaLop = 'K11'
+	AND MaMH = 'CTRR'
+	AND KQua = 'Khong Dat'
+	AND LanThi = 1
+
+/*5. * Danh sách học viên (mã học viên, họ tên) của lớp “K” thi môn CTRR không đạt (ở tất cả
+các lần thi).*/
+SELECT DISTINCT 
+	HocVien.MaHV, (Ho+' '+Ten) HoTen
+FROM 
+	HOCVIEN, KETQUATHI
+WHERE 
+	HOCVIEN.mahv = KETQUATHI.mahv
+    AND malop LIKE 'K%'
+    AND NOT EXISTS (SELECT * 
+                    FROM KETQUATHI 
+                    WHERE 
+                    	kqua = 'Dat' 
+                        AND mamh = 'CTRR' 
+                    	AND KETQUATHI.mahv = HOCVIEN.mahv)
 
 
 
