@@ -1,5 +1,3 @@
-CREATE DATABASE QLBH
-USE QLBH
 
 /*CÂU 1*/
 CREATE TABLE KHACHHANG(
@@ -441,5 +439,225 @@ WHERE NOT EXISTS(SELECT *
                                 FROM CTHD C
                                 WHERE C.SOHD = H.SOHD
                                 AND C.MASP = S.MASP))
+/*Đếm dòng*/
+SELECT COUNT(*) Đặt_Tên_Nè
+FROM HOADON
 
+/*Đếm dòng đã được điền */
+SELECT COUNT(makh)
+FROM HOADON
+ 
+/*Đếm các mã tổn tại*/
+SELECT COUNT(DISTINCT makh)
+FROM HOADON
+
+/*Câu 20: Có bao nhiêu hóa đơn không phải của khách hàng đăng ký thành viên mua?*/
+SELECT COUNT(sohd)
+From HOADON
+WHERE makh is NULL
+
+/*Câu 21: Có bao nhiêu sản phẩm khác nhau được bán ra trong năm 2006.*/
+SELECT COUNT(DISTINCT masp)
+FROM CTHD JOIN HOADON HD
+ON CTHD.sohd = HD.sohd
+WHERE YEAR(nghd) = 2006
+
+SELECT COUNT(DISTINCT masp)
+FROM CTHD
+WHERE sohd IN (SELECT sohd 
+               FROM HOADON
+               WHERE YEAR(nghd) = 2006)
+               
+/*Câu 22: Cho biết trị giá hóa đơn cao nhất, thấp nhất là bao nhiêu ?*/
+-- CAO NHẤT --
+SELECT trigia
+FROM HOADON
+WHERE trigia >= all(SELECT trigia 
+                    FROM HOADON)
+                    
+SELECT TOP 1 WITH TIES trigia
+FROM HOADON
+ORDER BY trigia DESC
+
+SELECT trigia 
+FROM HOADON
+WHERE trigia = (SELECT max(trigia) 
+                   FROM HOADON)
+                   
+-- THẤP NHẤT --
+SELECT TOP 1 WITH TIES trigia 
+FROM HOADON
+ORDER by trigia ASC
+
+SELECT trigia
+FROM HOADON
+WHERE trigia = (SELECT MIN(trigia) 
+                FROM HOADON)
+                
+SELECT trigia
+FROM HOADON
+WHERE trigia <= ALL(SELECT trigia 
+                    FROM HOADON)
+                   
+/*Câu 23: Trị giá trung bình của tất cả các hóa đơn được bán ra trong năm 2006 là bao nhiêu?*/
+SELECT avg(trigia) TriGiaTrungBinh
+FROM HOADON
+WHERE YEAR(nghd) = 2006
+
+/*Câu 24: Tính doanh thu bán hàng trong năm 2006.*/
+SELECT SUM(trigia)
+FROM HOADON
+
+/*Câu 25: Tìm số hóa đơn có trị giá cao nhất trong năm 2006.*/
+SELECT TOP 1 sohd
+FROM HOADON
+WHERE YEAR(nghd)=2006
+ORDER BY trigia DESC
+
+SELECT sohd 
+FROM HOADON
+WHERE trigia >= all(SELECT trigia 
+                    FROM HOADON)
+
+SELECT sohd
+FROM HOADON
+WHERE trigia = (SELECT max(trigia) 
+                FROM HOADON)
+
+/*Câu 26: Tìm họ tên khách hàng đã mua hóa đơn có trị giá cao nhất trong năm 2006.*/
+SELECT TOP 1 hoten
+FROM KHACHHANG JOIN HOADON 
+ON KHACHHANG.makh = HOADON.makh
+ORDER by trigia DESC
+
+SELECT hoten
+FROM KHACHHANG
+WHERE makh = (SELECT makh 
+              FROM HOADON 
+              WHERE trigia = (SELECT max(trigia) 
+                              FROM HOADON 
+                              WHERE YEAR(nghd)=2006)) 
+
+                              
+SELECT hoten
+FROM KHACHHANG KH JOIN HOADON HD
+on KH.makh = HD.makh
+WHERE trigia = (SELECT max(trigia) 
+                FROM HOADON 
+                WHERE YEAR(nghd) = 2006)
+
+/*Câu 27: In ra danh sách 3 khách hàng (MAKH, HOTEN) có doanh số cao nhất.*/
+SELECT TOP 3 makh, hoten
+FROM KHACHHANG
+ORDER BY doanhso DESC 
+
+/*Câu 28: In ra danh sách các sản phẩm (MASP, TENSP) có giá bán bằng 1 trong 3 mức giá cao nhất.*/
+
+SELECT masp, tensp
+FROM SANPHAM
+WHERE gia IN (SELECT DISTINCT TOP 3 gia 
+              FROM SANPHAM 
+              ORDER BY gia DESC)
+--TEST--
+SELECT DISTINCT TOP 3 gia 
+FROM SANPHAM               
+ORDER BY gia DESC
+
+SELECT TOP 3 gia 
+FROM SANPHAM 
+ORDER BY gia DESC
+
+/*Cau 29: In ra danh sách các sản phẩm (MASP, TENSP) do “Thai Lan” sản xuất có giá bằng 1 trong 3 mức
+giá cao nhất (của tất cả các sản phẩm).*/
+SELECT masp, tensp
+from SANPHAM
+WHERE nuocsx = 'Thai Lan'
+AND gia IN (SELECT DISTINCT TOP 3 gia 
+            FROM SANPHAM 
+            ORDER BY gia DESC)
+
+/*CAU 30: In ra danh sách các sản phẩm (MASP, TENSP) do “Trung Quoc” sản xuất có giá bằng 1 trong 3 mức
+giá cao nhất (của sản phẩm do “Trung Quoc” sản xuất).*/
+SELECT masp, tensp
+FROM SANPHAM
+WHERE nuocsx = 'Trung Quoc' 
+AND gia IN (SELECT DISTINCT TOP 3 GIA 
+            FROM SANPHAM 
+            ORDER BY GIA DESC)
+
+/*Cau 31: In ra danh sách 3 khách hàng có doanh số cao nhất (sắp xếp theo kiểu xếp hạng).*/
+SELECT TOP 3 makh, hoten, doanhso
+FROM KHACHHANG
+ORDER BY doanhso DESC 
+
+/*Cau 32: Tính tổng số sản phẩm do “Trung Quoc” sản xuất.*/
+SELECT COUNT(masp)
+FROM SANPHAM
+WHERE nuocsx = 'Trung Quoc'
+
+/*Cau 33: Tính tổng số sản phẩm của từng nước sản xuất.*/
+-- 'Từng' nhớ dùng GROUP BY
+SELECT nuocsx, COUNT(masp)
+FROM SANPHAM
+GROUP BY nuocsx
+
+/*Cau 34: Với từng nước sản xuất, tìm giá bán cao nhất, thấp nhất, trung bình của các sản phẩm.*/
+-- Nhớ đặt tên cho cột --
+SELECT nuocsx, MAX(gia) GiaCaoNhat, Min(gia) GiaThapNhat, AVG(gia) GiaTrungBinh
+FROM SANPHAM
+GROUP BY nuocsx
+
+/*Cau 35: Tính doanh thu bán hàng mỗi ngày.*/
+SELECT DAY(nghd) Ngày,SUM(doanhso) DoanhthuNgay
+FROM KHACHHANG KH JOIN HOADON HD
+ON KH.makh = HD.makh
+GROUP BY DAY(nghd)
+
+/*Cau 36: Tính tổng số lượng của từng sản phẩm bán ra trong tháng 10/2006.*/
+SELECT masp, COUNT(sl)
+from CTHD JOIN HOADON
+ON CTHD.sohd = HOADON.sohd
+WHERE MONTH(nghd) = 10 AND YEAR(nghd) = 2006
+GROUP BY masp
+
+/*CaU 37: Tính doanh thu bán hàng của từng tháng trong năm 2006.*/
+SELECT MONTH(nghd) Tháng, SUM(trigia) DoanhthuThang
+FROM HOADON
+WHERE YEAR(nghd) = 2006
+GROUP by MONTH(nghd)
+
+/*Cau 38: Tìm hóa đơn có mua ít nhất 4 sản phẩm khác nhau.*/
+SELECT HD.sohd
+FROM HOADON HD JOIN CTHD
+on HD.sohd = CTHD.sohd
+GROUP by HD.sohd
+HAVING COUNT(masp) >= 4
+
+/*Cau 39: Tìm hóa đơn có mua 3 sản phẩm do “Viet Nam” sản xuất (3 sản phẩm khác nhau).*/
+SELECT HD.sohd
+FROM HOADON HD JOIN CTHD
+on HD.sohd = CTHD.sohd
+WHERE masp IN (SELECT masp 
+               FROM SANPHAM 
+               WHERE nuocsx ='Viet Nam')
+GROUP by HD.sohd
+HAVING COUNT(masp) = 3
+
+/*Cau 40: Tìm khách hàng (MAKH, HOTEN) có số lần mua hàng nhiều nhất.*/
+SELECT makh, COUNT(makh) solan
+FROM HOADON
+GROUP by makh
+HAVING COUNT(makh) >= all(SELECT COUNT(makh)
+                          FROM HOADON 
+                          GROUP by makh)
+
+/*Cau 41: Tháng mấy trong năm 2006, doanh số bán hàng cao nhất ?*/
+
+/*Câu 42: Tìm sản phẩm (MASP, TENSP) có tổng số lượng bán ra thấp nhất trong năm 2006.*/
+
+/*Câu 43: *Mỗi nước sản xuất, tìm sản phẩm (MASP,TENSP) có giá bán cao nhất.*/
+
+/*Câu 44: Tìm nước sản xuất sản xuất ít nhất 3 sản phẩm có giá bán khác nhau.*/
+
+/*Câu 45: *Trong 10 khách hàng có doanh số cao nhất, tìm khách hàng có số lần mua hàng nhiều nhất.*/
 
