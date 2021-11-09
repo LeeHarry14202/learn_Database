@@ -652,12 +652,64 @@ HAVING COUNT(makh) >= all(SELECT COUNT(makh)
                           GROUP by makh)
 
 /*Cau 41: Tháng mấy trong năm 2006, doanh số bán hàng cao nhất ?*/
+SELECT MONTH(nghd) Tháng, SUM(trigia) DoanhsoThang
+FROM HOADON
+WHERE YEAR(nghd) = 2006
+GROUP by MONTH(nghd)
+HAVING SUM(trigia) >= ALL(SELECT SUM(trigia) 
+                         FROM HOADON 
+                         GROUP BY MONTH(nghd))
+                         
+SELECT TOP 1 MONTH(NGHD) AS DoanhsoThang
+FROM HOADON
+WHERE YEAR(NGHD) = 2006
+GROUP BY MONTH(NGHD)
+ORDER BY SUM(TRIGIA) DESC
+
+SELECT MONTH(nghd) Tháng, SUM(trigia) DoanhsoThang
+FROM HOADON
+WHERE YEAR(nghd) = 2006
+GROUP by MONTH(nghd)
+HAVING SUM(trigia) >= ALL(SELECT SUM(trigia) 
+                         FROM HOADON 
+                         GROUP BY MONTH(nghd))
 
 /*Câu 42: Tìm sản phẩm (MASP, TENSP) có tổng số lượng bán ra thấp nhất trong năm 2006.*/
+SELECT masp,tensp
+FROM SANPHAM 
+WHERE masp IN (SELECT TOP 1 WITH TIES masp
+               FROM CTHD JOIN HOADON
+               ON CTHD.sohd = HOADON.sohd
+               WHERE YEAR(nghd) = 2006  
+               GROUP by masp
+               ORDER BY SUM(SL) ASc)
 
 /*Câu 43: *Mỗi nước sản xuất, tìm sản phẩm (MASP,TENSP) có giá bán cao nhất.*/
+SELECT B.NUOCSX, MASP, TENSP
+FROM (SELECT NUOCSX, MAX(GIA) AS MAX
+      FROM SANPHAM
+      GROUP BY NUOCSX) AS LEFT JOIN SANPHAM S 
+ON S.GIA = B.MAX 
+WHERE B.NUOCSX = S.NUOCSX
+
 
 /*Câu 44: Tìm nước sản xuất sản xuất ít nhất 3 sản phẩm có giá bán khác nhau.*/
 
 /*Câu 45: *Trong 10 khách hàng có doanh số cao nhất, tìm khách hàng có số lần mua hàng nhiều nhất.*/
+SELECT makh, hoten
+FROM KHACHHANG
+WHERE makh IN (SELECT TOP 1 WITH TIES makh
+               FROM HOADON
+               WHERE makh IN (SELECT TOP 10  WITH TIES makh
+                              FROM KHACHHANG
+                              ORDER BY doanhso DESC)
+               GROUP BY makh
+               ORDER BY COUNT(sohd) DESC)
+
+
+
+
+
+
+
 
