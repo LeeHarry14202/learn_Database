@@ -366,7 +366,9 @@ WHERE
 	mahv IN (SELECT 
              	mahv 
              FROM 
-             	KETQUATHIWHERE lanthi = 3 
+             	KETQUATHI
+             WHERE 
+             lanthi = 3 
              AND 
              	diem < 5)
 
@@ -469,6 +471,219 @@ WHERE
                     	kqua = 'Dat' 
                         AND mamh = 'CTRR' 
                     	AND KETQUATHI.mahv = HOCVIEN.mahv)
+              
+/* with ties lấy tất cả các trường hơp có kết quả tương tự*/
+/*Tìm cái NHẤT*/
+/*CÁCH 1*/
+SELECT TOP 1 WITH TIES diem
+FROM KETQUATHI
+ORDER BY diem desc
+
+SELECT diem
+FROM KETQUATHI
+WHERE diem >= ALL(SELECT diem FROM KETQUATHI)
+
+SELECT diem
+FROM KETQUATHI
+WHERE diem = (SELECT MAX(diem) FROM KETQUATHI)
+
+/*Câu 6. Tìm tên những môn học mà giáo viên có tên “Tran Tam Thanh” dạy trong học kỳ 1 năm
+2006.*/
+SELECT mamh, tenmh
+FROM MONHOC
+WHERE mamh IN (SELECT DISTINCT GIANGDAY.mamh
+               FROM GIAOVIEN JOIN GIANGDAY
+               ON GIAOVIEN.MAGV = GIANGDAY.MAGV
+               WHERE 
+               		hoten = 'Tran Tam Thanh' 
+               		AND hocky = 1 
+               		AND nam = 2006)
+
+/*Câu 7. Tìm những môn học (mã môn học, tên môn học) mà giáo viên chủ nhiệm lớp “K11” dạy
+trong học kỳ 1 năm 2006.*/
+SELECT mamh, tenmh
+FROM MONHOC
+WHERE mamh IN (SELECT DISTINCT GIANGDAY.mamh
+               FROM GIAOVIEN JOIN GIANGDAY
+               ON GIAOVIEN.MAGV = GIANGDAY.MAGV
+               WHERE 
+               		GIAOVIEN.magv IN (SELECT magvcn 
+                                      FROM LOP) 
+               		AND hocky = 1 
+               		AND nam = 2006)
+
+/*Câu 8. Tìm họ tên lớp trưởng của các lớp mà giáo viên có tên “Nguyen To Lan” dạy môn “Co So
+Du Lieu”.*/
+SELECT ho +' ' + ten
+FROM HOCVIEN
+WHERE mahv IN (SELECT trglop
+               FROM LOP
+               WHERE malop IN (SELECT GD.malop
+                               FROM GIAOVIEN GV JOIN GIANGDAY GD
+                               ON GV.magv = GD.magv
+                               WHERE 
+                               		hoten = 'Nguyen To Lan' 
+                               		AND GD.mamh IN (SELECT mamh
+                                                    FROM MONHOC 
+                                                    wHERE tenmh = 'Co So Du Lieu')))
+
+/*Câu 9. In ra danh sách những môn học (mã môn học, tên môn học) phải học liền trước môn “Co So
+Du Lieu”.*/
+SELECT mamh,tenmh
+FROM MONHOC
+WHERE mamh IN (SELECT mamh_truoc
+               FROM DIEUKIEN DK JOIN MONHOC MH
+               ON DK.mamh = MH.mamh
+               WHERE MH.tenmh = 'Co So Du Lieu')
+               
+/*Câu 10. Môn “Cau Truc Roi Rac” là môn bắt buộc phải học liền trước những môn học (mã môn học,
+tên môn học) nào.*/
+SELECT mamh, tenmh
+FROM MONHOC
+WHERE mamh IN (SELECT mamh
+               FROM DIEUKIEN 
+               WHERE mamh_truoc IN (SELECT mamh
+                                    FROM MONHOC
+                                    WHERE tenmh ='Cau Truc Roi Rac'))
+
+/*CÂU 11. Tìm họ tên giáo viên dạy môn CTRR cho cả hai lớp “K11” và “K12” trong cùng học kỳ 1
+năm 2006.*/
+SELECT hoten
+FROM GIAOVIEN
+WHERE magv IN (SELECT magv
+               FROM GIANGDAY 
+               WHERE malop = 'K11' AND hocky = 1 AND nam = 2006 AND mamh = 'CTRR'
+               INTERSECT
+               SELECT magv
+               FROM GIANGDAY 
+               WHERE malop = 'K12' AND hocky = 1 AND nam = 2006 AND mamh = 'CTRR')
+
+/*CÂU 12. Tìm những học viên (mã học viên, họ tên) thi không đạt môn CSDL ở lần thi thứ 1 nhưng
+chưa thi lại môn này.*/
+SELECT DISTINCT mahv
+FROM KETQUATHI
+WHERE kqua = 'Khong Dat' AND mamh = 'CSDL' AND lanthi = 1
+EXCEPT
+SELECT mahv
+FROM KETQUATHI
+WHERE lanthi = 2 AND mamh = 'CSDL'
+
+/*CÂU 13. Tìm giáo viên (mã giáo viên, họ tên) không được phân công giảng dạy bất kỳ môn học nào.*/
+SELECT magv, hoten
+FROM GIAOVIEN
+WHERE NOT EXISTS (SELECT DISTINCT magv 
+                  FROM GIANGDAY 
+                  WHERE GIAOVIEN.magv = GIANGDAY.magv) 
+
+
+SELECT magv,hoten
+FROM GIAOVIEN
+WHERE magv IN (SELECT magv
+               FROM GIAOVIEN
+               EXCEPT
+               SELECT magv
+               FROM GIANGDAY)
+
+
+/*CÂU 14. Tìm giáo viên (mã giáo viên, họ tên) không được phân công giảng dạy bất kỳ môn học 
+nào thuộc khoa giáo viên đó phụ trách.*/
+SELECT magv, hoten
+FROM GIAOVIEN
+WHERE NOT EXISTS (SELECT * 
+                  FROM MONHOC 
+                  WHERE MONHOC.MAKHOA = GIAOVIEN.makhoa 
+                  AND NOT EXISTS (SELECT * 
+                                  FROM GIANGDAY 
+                                  WHERE MONHOC.mamh = GIANGDAY.mamh 
+                                  AND GIANGDAY.magv = GIAOVIEN.magv ))
+
+/*CÂU 15. Tìm họ tên các học viên thuộc lớp “K11” thi một môn bất kỳ quá 3 lần vẫn “Khong dat”
+hoặc thi lần thứ 2 môn CTRR được 5 điểm.*/
+SELECT ho +' '+ten
+FROM HOCVIEN 
+WHERE mahv IN(SELECT mahv
+              FROM KETQUATHI
+              WHERE kqua = 'Khong Dat'
+              GROUP by mahv, mamh
+              HAVING COUNT(mahv) > 3
+              UNION 
+              SELECT mahv
+              FROM KETQUATHI
+              WHERE 
+					lanthi = 2 
+    				AND mamh = 'CTRR' 
+    				AND diem = 5 
+					AND mahv IN (SELECT mahv 
+                                 FROM HOCVIEN
+                                 WHERE malop = 'K11'))
+/*16. Tìm họ tên giáo viên dạy môn CTRR cho ít nhất hai lớp trong cùng một học kỳ của một năm
+học.*/
+
+
+/*17. Danh sách học viên và điểm thi môn CSDL (chỉ lấy điểm của lần thi sau cùng).*/
+
+
+/*18. Danh sách học viên và điểm thi môn “Co So Du Lieu” (chỉ lấy điểm cao nhất của các lần
+thi).*/
+
+
+/*19. Khoa nào (mã khoa, tên khoa) được thành lập sớm nhất.*/
+SELECT TOP 1 WITH TIES makhoa, tenkhoa
+FROM KHOA
+ORDER BY ngtlap ASC
+
+/*20. Có bao nhiêu giáo viên có học hàm là “GS” hoặc “PGS”.*/
+SELECT hocham, COUNT(magv) magv
+FROM GIAOVIEN
+WHERE hocham = 'GS' OR hocham = 'PGS'
+GROUP BY hocham
+
+/*21. Thống kê có bao nhiêu giáo viên có học vị là “CN”, “KS”, “Ths”, “TS”, “PTS” trong mỗi
+khoa.*/
+SELECT makhoa,hocvi, COUNT(magv ) SL
+FROM GIAOVIEN
+GROUP BY makhoa, hocvi
+/*22. Mỗi môn học thống kê số lượng học viên theo kết quả (đạt và không đạt).*/
+SELECT mamh, kqua,COUNT(mahv)
+FROM KETQUATHI
+GROUP BY mamh, kqua
+/*23. Tìm giáo viên (mã giáo viên, họ tên) là giáo viên chủ nhiệm của một lớp, đồng thời dạy cho
+lớp đó ít nhất một môn học.*/
+
+
+/*24. Tìm họ tên lớp trưởng của lớp có sỉ số cao nhất.*/
+SELECT HO+' '+TEN
+FROM HOCVIEN
+WHERE mahv IN (SELECT TOP 1 WITH TIES trglop
+               FROM LOP
+               ORDER BY siso DESC)
+/*25. * Tìm họ tên những LOPTRG thi không đạt quá 3 môn (mỗi môn đều thi không đạt ở tất cả
+các lần thi).*/
+
+/*26. Tìm học viên (mã học viên, họ tên) có số môn đạt điểm 9,10 nhiều nhất.*/
+
+/*27. Trong từng lớp, tìm học viên (mã học viên, họ tên) có số môn đạt điểm 9,10 nhiều nhất.*/
+
+/*28. Trong từng học kỳ của từng năm, mỗi giáo viên phân công dạy bao nhiêu môn học, bao
+nhiêu lớp.*/
+
+/*29. Trong từng học kỳ của từng năm, tìm giáo viên (mã giáo viên, họ tên) giảng dạy nhiều nhất.*/
+
+
+/*30. Tìm môn học (mã môn học, tên môn học) có nhiều học viên thi không đạt (ở lần thi thứ 1)
+nhất.*/
+
+/*31. Tìm học viên (mã học viên, họ tên) thi môn nào cũng đạt (chỉ xét lần thi thứ 1).*/
+
+/*32. * Tìm học viên (mã học viên, họ tên) thi môn nào cũng đạt (chỉ xét lần thi sau cùng).*/
+
+/*33. * Tìm học viên (mã học viên, họ tên) đã thi tất cả các môn đều đạt (chỉ xét lần thi thứ 1).*/
+
+/*34. * Tìm học viên (mã học viên, họ tên) đã thi tất cả các môn đều đạt (chỉ xét lần thi sau cùng).*/
+
+/*35. ** Tìm học viên (mã học viên, họ tên) có điểm thi cao nhất trong từng môn (lấy điểm ở lần
+thi sau cùng).*/
+
 
 
 
